@@ -1,6 +1,66 @@
+<!DOCTYPE html>
 <html>
-<a class="weatherwidget-io" href="https://forecast7.com/tr/39d7730d53/eskisehir/" data-label_1="ESKİŞEHİR" data-label_2="HAVA DURUMU" data-font="Open Sans Condensed" data-icons="Climacons Animated" data-days="5" data-theme="pure" data-basecolor="#1d2f5d" data-textcolor="#ffffff" data-highcolor="" data-lowcolor="" data-suncolor="" data-mooncolor="" data-cloudcolor="" data-cloudfill="" data-raincolor="" data-snowcolor="" >ESKİŞEHİR HAVA DURUMU</a>
-<script>
-!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
-</script>
+<head>
+  <meta charset="utf-8" />
+  <title>Eskişehir Weather (No iFrame)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#1d2f5d; color:#fff; }
+    .wrap { max-width:720px; margin:0 auto; padding:24px; }
+    h1 { margin:0 0 8px; font-weight:700; letter-spacing:.5px; }
+    .subtitle { opacity:.8; margin:0 0 20px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:12px; }
+    .card { background:rgba(255,255,255,.08); border-radius:14px; padding:12px; }
+    .day { font-weight:600; margin-bottom:6px; }
+    .temps { font-size:14px; margin-top:6px; opacity:.9 }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>ESKİŞEHİR</h1>
+    <div class="subtitle">5-Day Forecast</div>
+    <div id="grid" class="grid">Loading…</div>
+  </div>
+
+  <script>
+  // Eskişehir approximate coords; adjust if needed
+  const lat = 39.7767, lon = 30.5206;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`;
+
+  const WMO = {
+    0: "Clear", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+    45: "Fog", 48: "Depositing rime fog",
+    51: "Drizzle: light", 53: "Drizzle: moderate", 55: "Drizzle: dense",
+    61: "Rain: slight", 63: "Rain: moderate", 65: "Rain: heavy",
+    71: "Snow: slight", 73: "Snow: moderate", 75: "Snow: heavy",
+    80: "Rain showers: slight", 81: "Rain showers: moderate", 82: "Rain showers: violent",
+    95: "Thunderstorm", 96: "Thunderstorm w/ slight hail", 99: "Thunderstorm w/ heavy hail"
+  };
+
+  fetch(url).then(r => r.json()).then(data => {
+    const g = document.getElementById('grid');
+    g.innerHTML = '';
+    const days = data.daily.time;
+    for (let i = 0; i < Math.min(days.length, 5); i++) {
+      const d = new Date(days[i]);
+      const label = d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
+      const desc = WMO[data.daily.weathercode[i]] || '—';
+      const tmax = Math.round(data.daily.temperature_2m_max[i]);
+      const tmin = Math.round(data.daily.temperature_2m_min[i]);
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="day">${label}</div>
+        <div>${desc}</div>
+        <div class="temps">High ${tmax}° / Low ${tmin}°</div>
+      `;
+      g.appendChild(card);
+    }
+  }).catch(err => {
+    document.getElementById('grid').textContent = 'Failed to load forecast.';
+    console.error(err);
+  });
+  </script>
+</body>
 </html>
