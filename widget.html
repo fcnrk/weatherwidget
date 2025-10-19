@@ -4,69 +4,148 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eskişehir Hava Durumu</title>
+
+  <!-- ✅ Climacons Animated Font -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/climacons-font/0.1.0/css/climacons-font.css" />
+
+  <!-- ✅ Loew Font (via cdnfonts) -->
+  <link href="https://fonts.cdnfonts.com/css/loew" rel="stylesheet">
+
   <style>
     :root{
-      --navy:#1d2f5d; --navy-2:#183056; --white:#fff; --muted:rgba(255,255,255,.85);
+      --navy:#1d2f5d;
+      --white:#fff;
       --divider:rgba(255,255,255,.08);
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:#eee;font-family: "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      background:#eee;
+      font-family:'Loew', 'Open Sans', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+    }
+
     .card{
-      width:360px; color:var(--white); background:var(--navy);
-      border-radius:8px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,.2);
+      width:360px;
+      color:var(--white);
+      background:var(--navy);
+      border-radius:8px;
+      overflow:hidden;
+      box-shadow:0 6px 20px rgba(0,0,0,.25);
     }
+
     .head{
-      padding:18px 20px 10px; text-align:center; letter-spacing:.3px; font-weight:700;
+      text-align:center;
+      padding:20px 0 10px;
+      font-weight:700;
+      letter-spacing:.3px;
     }
-    .head .city{font-size:18px}
-    .head .subtitle{font-size:12px; opacity:.85; margin-top:2px}
+
+    .head .city{
+      font-size:20px;
+      text-transform:uppercase;
+    }
+
+    .head .subtitle{
+      font-size:13px;
+      opacity:.9;
+      margin-top:2px;
+    }
+
     .now{
-      display:flex; align-items:center; justify-content:flex-start; gap:16px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:16px;
       padding:10px 20px 16px;
     }
-    .bigicon{width:70px; height:70px}
-    .tempwrap{display:flex; flex-direction:column; align-items:flex-start}
-    .temp{font-size:44px; font-weight:700; line-height:1}
-    .cond{font-size:14px; opacity:.9; margin-top:4px; text-transform:lowercase}
-    .rows{padding:4px 10px 12px}
-    .row{
-      display:grid; grid-template-columns: 1fr 28px 1fr 1fr;
-      align-items:center; gap:10px; padding:10px; border-top:1px solid var(--divider);
-      background:linear-gradient(to bottom, rgba(255,255,255,.02), rgba(255,255,255,0));
+
+    .bigicon{
+      font-size:64px;
+      line-height:1;
     }
-    .dow{font-weight:600}
-    .mini{width:28px; height:28px}
-    .hi,.lo{justify-self:end}
-    .lo{opacity:.9}
-    /* simple icon style */
-    svg{display:block}
+
+    .tempwrap{
+      display:flex;
+      flex-direction:column;
+    }
+
+    .temp{
+      font-size:44px;
+      font-weight:700;
+      line-height:1;
+    }
+
+    .cond{
+      font-size:15px;
+      margin-top:4px;
+      opacity:.9;
+      text-transform:lowercase;
+    }
+
+    .rows{
+      padding:4px 10px 12px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 30px 1fr 1fr;
+      align-items:center;
+      gap:8px;
+      padding:10px;
+      border-top:1px solid var(--divider);
+    }
+
+    .dow{
+      font-weight:600;
+    }
+
+    .mini{
+      font-size:24px;
+    }
+
+    .hi{
+      text-align:right;
+    }
+
+    .lo{
+      text-align:right;
+      opacity:.9;
+    }
+
+    /* Smoother font rendering */
+    body, .card {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
   </style>
 </head>
+
 <body>
-  <div class="card" id="card">
+  <div class="card">
     <div class="head">
       <div class="city">ESKİŞEHİR</div>
       <div class="subtitle">HAVA DURUMU</div>
     </div>
 
     <div class="now">
-      <div id="bigIcon" class="bigicon"></div>
+      <i id="bigIcon" class="climacon cloud bigicon"></i>
       <div class="tempwrap">
         <div id="tempNow" class="temp">--°C</div>
         <div id="condNow" class="cond">yükleniyor…</div>
       </div>
     </div>
 
-    <div class="rows" id="rows">
-      <!-- rows inserted by JS -->
-    </div>
+    <div class="rows" id="rows"></div>
   </div>
 
   <script>
-    // Eskişehir coords
     const LAT = 39.7767, LON = 30.5206;
 
-    // Fetch current + next 5 days
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
       `&current=temperature_2m,weather_code` +
       `&daily=weathercode,temperature_2m_max,temperature_2m_min` +
@@ -79,69 +158,56 @@
       61:"yağmur: hafif",63:"yağmur: orta",65:"yağmur: kuvvetli",
       66:"suyla karışık: hafif",67:"suyla karışık: kuvvetli",
       71:"kar: hafif",73:"kar: orta",75:"kar: kuvvetli",
-      77:"kar taneleri",85:"kar sağanağı: hafif",86:"kar sağanağı: kuvvetli",
-      80:"sağanak: hafif",81:"sağanak: orta",82:"sağanak: kuvvetli",
+      77:"kar taneleri",80:"sağanak: hafif",81:"sağanak: orta",82:"sağanak: kuvvetli",
+      85:"kar sağanağı: hafif",86:"kar sağanağı: kuvvetli",
       95:"gök gürültülü fırtına",96:"dolulu fırtına: hafif",99:"dolulu fırtına: kuvvetli"
     };
 
-    // Minimal SVG icons (cloud, rain, sun-cloud)
-    function iconSVG(code, size=70){
-      const s = size, c = '#fff';
-      const cloud = `<ellipse cx="${s*0.46}" cy="${s*0.6}" rx="${s*0.28}" ry="${s*0.18}" fill="${c}" />
-                     <ellipse cx="${s*0.6}" cy="${s*0.62}" rx="${s*0.22}" ry="${s*0.15}" fill="${c}" />
-                     <ellipse cx="${s*0.36}" cy="${s*0.66}" rx="${s*0.2}" ry="${s*0.13}" fill="${c}" />`;
-      const raindrops = `
-        <path d="M ${s*0.46} ${s*0.78} q -2 6 0 10 q 2 -4 0 -10 Z" fill="${c}" />
-        <path d="M ${s*0.56} ${s*0.82} q -2 6 0 10 q 2 -4 0 -10 Z" fill="${c}" />
-        <path d="M ${s*0.36} ${s*0.82} q -2 6 0 10 q 2 -4 0 -10 Z" fill="${c}" />`;
-      const sun = `<circle cx="${s*0.22}" cy="${s*0.42}" r="${s*0.11}" fill="${c}" />`;
-      const rainy = [51,53,55,61,63,65,66,67,80,81,82,95,96,99];
-      const snowy = [71,73,75,77,85,86];
-      const cloudy = [1,2,3,45,48];
-      const clear = [0];
-
-      if (rainy.includes(code)) return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">${cloud}${raindrops}</svg>`;
-      if (snowy.includes(code))  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">${cloud}</svg>`;
-      if (cloudy.includes(code)) return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">${sun}${cloud}</svg>`;
-      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">${sun}</svg>`;
+    function iconClass(code){
+      const rainy=[51,53,55,61,63,65,66,67,80,81,82,95,96,99];
+      const snowy=[71,73,75,77,85,86];
+      const cloudy=[1,2,3,45,48];
+      if(rainy.includes(code)) return "climacon rain";
+      if(snowy.includes(code)) return "climacon snow";
+      if(cloudy.includes(code)) return "climacon cloud";
+      return "climacon sun";
     }
 
-    function iconMini(code){ return iconSVG(code, 28); }
+    const DAYS_TR=["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
 
-    const DAYS_TR = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+    fetch(url)
+      .then(r=>r.json())
+      .then(data=>{
+        const tNow=Math.round(data.current.temperature_2m);
+        const wNow=data.current.weather_code;
+        document.getElementById('tempNow').textContent=`${tNow}°C`;
+        document.getElementById('condNow').textContent=WMO_TR[wNow]||"—";
+        document.getElementById('bigIcon').className=iconClass(wNow)+" bigicon";
 
-    fetch(url).then(r=>r.json()).then(data=>{
-      // Top section
-      const tNow = Math.round(data.current.temperature_2m);
-      const wNow = data.current.weather_code;
-      document.getElementById('tempNow').textContent = `${tNow}°C`;
-      document.getElementById('condNow').textContent = (WMO_TR[wNow] || '—');
-      document.getElementById('bigIcon').innerHTML = iconSVG(wNow, 70);
-
-      // 5 rows (today + next 4)
-      const rowsEl = document.getElementById('rows');
-      const days = data.daily.time;
-      for (let i=0; i<5 && i<days.length; i++){
-        const d = new Date(days[i]);
-        const dow = DAYS_TR[d.getDay()];
-        const code = data.daily.weathercode[i];
-        const tmax = Math.round(data.daily.temperature_2m_max[i]);
-        const tmin = Math.round(data.daily.temperature_2m_min[i]);
-
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `
-          <div class="dow">${dow}</div>
-          <div class="mini">${iconMini(code)}</div>
-          <div class="hi">${tmax}°C</div>
-          <div class="lo">${tmin}°C</div>
-        `;
-        rowsEl.appendChild(row);
-      }
-    }).catch(err=>{
-      document.getElementById('condNow').textContent = 'veri alınamadı';
-      console.error(err);
-    });
+        const rows=document.getElementById('rows');
+        rows.innerHTML="";
+        const days=data.daily.time;
+        for(let i=0;i<5&&i<days.length;i++){
+          const d=new Date(days[i]);
+          const dow=DAYS_TR[d.getDay()];
+          const code=data.daily.weathercode[i];
+          const tmax=Math.round(data.daily.temperature_2m_max[i]);
+          const tmin=Math.round(data.daily.temperature_2m_min[i]);
+          const row=document.createElement('div');
+          row.className='row';
+          row.innerHTML=`
+            <div class="dow">${dow}</div>
+            <i class="${iconClass(code)} mini"></i>
+            <div class="hi">${tmax}°C</div>
+            <div class="lo">${tmin}°C</div>
+          `;
+          rows.appendChild(row);
+        }
+      })
+      .catch(err=>{
+        document.getElementById('condNow').textContent='veri alınamadı';
+        console.error(err);
+      });
   </script>
 </body>
 </html>
