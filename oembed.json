@@ -4,7 +4,7 @@
   "provider_name": "FCNRKN Widget",
   "provider_url": "https://fcnrknweatherwidget.netlify.app",
   "title": "Eskişehir Weather Widget",
-  "html": "<iframe src='https://fcnrknweatherwidget.netlify.app/index.html' width='400' height='750' frameborder='0' scrolling='no' allow='fullscreen'></iframe>",
+  "html": "<iframe src='https://fcnrknweatherwidget.netlify.app/embed.html' width='400' height='750' frameborder='0' scrolling='no' allow='fullscreen'></iframe>",
   "width": 400,
   "height": 750
 }
